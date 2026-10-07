@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
+
 -- Можно писать лямбды в своё удовольствие.
 {- HLINT ignore "Redundant lambda" -}
 
@@ -12,7 +13,6 @@ module Level1 where
 import MetaUtils (todo)
 import TypeCheck (Todo)
 
-
 -- 1.1. Пары из λ-исчисления
 --
 -- Оттранслируйте в Haskell пары в стиле чистого λ-исчисления: термы pair, fst и snd.
@@ -20,10 +20,11 @@ import TypeCheck (Todo)
 -- ваши называются fstChurch и sndChurch.
 -- Ознакомьтесь с тем, как это задание тестируется в test/SpecLevel1.hs.
 
-pair = todo "1.1 pair"
-fstChurch = todo "1.1 fstChurch"
-sndChurch = todo "1.1 sndChurch"
+pair = \x y f -> f x y
 
+fstChurch = \p -> p const
+
+sndChurch = \p -> p (flip const)
 
 -- 1.2. Взаимная рекурсия
 --
@@ -37,11 +38,16 @@ sndChurch = todo "1.1 sndChurch"
 -- При реализации используйте охранные выражения (guards, см. лекцию).
 
 isEven :: Integer -> Bool
-isEven = todo "1.2 isEven"
+isEven n
+  | n == 0 = True
+  | n < 0 = isOdd (n + 1)
+  | otherwise = isOdd (n - 1)
 
 isOdd :: Integer -> Bool
-isOdd = todo "1.2 isOdd"
-
+isOdd n
+  | n == 0 = False
+  | n < 0 = isEven (n + 1)
+  | otherwise = isEven (n - 1)
 
 -- 1.3. Найдите ошибку
 --
@@ -57,8 +63,7 @@ facBuggy n = go n (n - 1)
       | otherwise = go (acc * n') (n' - 1)
 
 counterexample :: Integer
-counterexample = todo "1.3"
-
+counterexample = 0
 
 -- 1.4. Рекуррентная последовательность
 --
@@ -67,9 +72,17 @@ counterexample = todo "1.3"
 -- Постарайтесь сделать так, чтобы ваша функция работала за линейное время.
 
 itemAt :: Integer -> Integer
-itemAt = todo "1.4"
+itemAt n
+  | n == 0 = 1
+  | n == 1 = 2
+  | n == 2 = 3
+  | otherwise = go 0 3 2 1
+  where
+    go k p2 p1 p0 = if k < n then go (k + 1) p3 p2 p1 else p0
+      where
+        p3 = p2 - 2 * p1 + 3 * p0
 
-
+-- n=3 => go 0 3 2 1 -> go 1
 -- 1.5. Цифры числа
 --
 -- Реализуйте функцию, которая по числу возвращает количество цифр в его модуле (abs),
@@ -77,8 +90,11 @@ itemAt = todo "1.4"
 -- последним действием. Используйте параметры-аккумуляторы.
 
 nSumDigits :: Integer -> (Integer, Integer)
-nSumDigits = todo "1.5"
-
+nSumDigits n = go (abs n) 0 0
+  where
+    go num cnt sum
+      | num == 0 = (if n == 0 then 1 else cnt, sum)
+      | otherwise = go (num `div` 10) (cnt + 1) (sum + num `mod` 10)
 
 -- 1.6. Предскажите тип
 --
@@ -88,13 +104,13 @@ nSumDigits = todo "1.5"
 -- Сначала запишите ответ, и только потом сверьтесь с интерпретатором командой :t.
 
 -- uncurry const
-typeOfUncurryConst :: Todo
+typeOfUncurryConst :: (x, y) -> x
 typeOfUncurryConst = undefined
 
 -- curry fst
-typeOfCurryFst :: Todo
+typeOfCurryFst :: x -> y -> x
 typeOfCurryFst = undefined
 
 -- flip (,)
-typeOfFlipPair :: Todo
+typeOfFlipPair :: b -> a -> (a, b)
 typeOfFlipPair = undefined
