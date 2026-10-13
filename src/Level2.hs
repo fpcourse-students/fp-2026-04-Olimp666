@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
+
 -- Можно писать лямбды в своё удовольствие.
 {- HLINT ignore "Redundant lambda" -}
 
@@ -9,20 +10,20 @@
 -- а в задаче 2.6 — на месте заглушки 'Todo' в типе.
 module Level2 where
 
-import Level1 (pair, fstChurch, sndChurch)
+import Level1 (fstChurch, pair, sndChurch)
 import MetaUtils (todo)
 import TypeCheck (Todo)
-
 
 -- 2.1. Варианты из λ-исчисления
 --
 -- Оттранслируйте в Haskell варианты в стиле чистого λ-исчисления (по Чёрчу): термы inl,
 -- inr и either. Имя either в Haskell занято стандартной функцией, ваша называется eitherChurch.
 
-inl = todo "2.1 inl"
-inr = todo "2.1 inr"
-eitherChurch = todo "2.1 eitherChurch"
+inl = \x f g -> f x
 
+inr = \y f g -> g y
+
+eitherChurch = \f g v -> v f g
 
 -- 2.2. Предыдущее число
 --
@@ -31,16 +32,16 @@ eitherChurch = todo "2.1 eitherChurch"
 -- В Haskell это predChurch, а fst и snd в нём — ваши fstChurch и sndChurch.
 -- Ознакомьтесь с тем, как этот код тестируется в test/SpecLevel2.hs.
 
-predChurch = todo "2.2"
-
+predChurch = \n s z -> sndChurch (n (\p -> pair (s (fstChurch p)) (fstChurch p)) (pair z z))
 
 -- 2.3. Простые числа
 --
 -- Реализуйте проверку числа на простоту.
 
 isPrime :: Integer -> Bool
-isPrime = todo "2.3"
-
+isPrime 0 = False
+isPrime 1 = False
+isPrime n = not $ foldr (||) False $ map (\m -> n `mod` m == 0) [2 .. floor $ sqrt $ fromIntegral n]
 
 -- 2.4. Множество как функция
 --
@@ -56,16 +57,19 @@ isPrime = todo "2.3"
 -- Пример множества {"a", "b", "c"}: emptySet +++ "a" +++ "b" +++ "c".
 
 emptySet :: String -> Bool
-emptySet = todo "2.4 emptySet"
+emptySet _ = False
 
 -- TODO объявление приоритета и ассоциативности
+infixl 5 +++
+
 (+++) :: (String -> Bool) -> String -> (String -> Bool)
-(+++) = todo "2.4 +++"
+(+++) set str = \s -> s == str || set s
 
 -- TODO объявление приоритета и ассоциативности
-(///) :: (String -> Bool) -> String -> (String -> Bool)
-(///) = todo "2.4 ///"
+infixl 5 ///
 
+(///) :: (String -> Bool) -> String -> (String -> Bool)
+(///) set str = \s -> s /= str && set s
 
 -- 2.5. Функция по типу
 --
@@ -74,8 +78,7 @@ emptySet = todo "2.4 emptySet"
 -- какой тип компилятор ждёт на её месте и что лежит в контексте (Relevant bindings).
 
 first :: (a -> a') -> (a, b) -> (a', b)
-first = todo "2.5"
-
+first f (x, y) = (f x, y)
 
 -- 2.6. Предскажите тип: посложнее
 --
@@ -83,13 +86,13 @@ first = todo "2.5"
 -- из комментария, тело оставьте заглушкой.
 
 -- uncurry (flip const)
-typeOfUncurryFlipConst :: Todo
+typeOfUncurryFlipConst :: (b, a) -> a
 typeOfUncurryFlipConst = todo "2.6 uncurry (flip const)"
 
 -- curry id
-typeOfCurryId :: Todo
+typeOfCurryId :: a -> b -> (a, b)
 typeOfCurryId = todo "2.6 curry id"
 
 -- flip (.)
-typeOfFlipCompose :: Todo
+typeOfFlipCompose :: (a -> b) -> (b -> c) -> a -> c
 typeOfFlipCompose = todo "2.6 flip (.)"
